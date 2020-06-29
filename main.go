@@ -2,35 +2,44 @@ package main
 
 import (
 	"flag"
-	"log"
-	"net/http"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
+	"os"
 )
 
-var addr = flag.String("addr", ":8080", "http service address")
-
-func serveHome(w http.ResponseWriter, r *http.Request) {
-	log.Println(r.URL)
-	if r.URL.Path != "/" {
-		http.Error(w, "Not found", http.StatusNotFound)
-		return
-	}
-	if r.Method != "GET" {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-	http.ServeFile(w, r, "home.html")
+type Args struct {
+	PrettyLogging bool
+	Debug         bool
 }
 
 func main() {
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+	log.Info().Msg("Starting prj001...")
+	//engine.New(createLogger(parseArgs())).AwaitShutdown()
+}
+
+func parseArgs() Args {
+	prettyLogging := flag.Bool(
+		"prettyLogging",
+		true,
+		"Outputs the log prettily printed and colored (slower)")
+	debug := flag.Bool("debug", false, "Sets log level to debug")
 	flag.Parse()
-	hub := newHub()
-	go hub.run()
-	http.HandleFunc("/", serveHome)
-	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
-		serveWs(hub, w, r)
-	})
-	err := http.ListenAndServe(*addr, nil)
-	if err != nil {
-		log.Fatal("ListenAndServe: ", err)
+
+	return Args{
+		PrettyLogging: *prettyLogging,
+		Debug:         *debug,
 	}
+}
+
+func createLogger(args Args) *zerolog.Logger {
+	logger := zerolog.New(os.Stdout).With().Timestamp().Logger()
+	if args.PrettyLogging {
+		logger = logger.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+	}
+	zerolog.SetGlobalLevel(zerolog.InfoLevel)
+	if args.Debug {
+		zerolog.SetGlobalLevel(zerolog.DebugLevel)
+	}
+	return &logger
 }
