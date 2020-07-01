@@ -2,9 +2,9 @@ package main
 
 import (
 	"flag"
-	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
-	"os"
+	"github.com/brotherdetjr/prj001/chronos"
+	"github.com/brotherdetjr/prj001/engine"
+	"github.com/brotherdetjr/prj001/util"
 )
 
 type Args struct {
@@ -13,9 +13,10 @@ type Args struct {
 }
 
 func main() {
-	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
-	log.Info().Msg("Starting prj001...")
-	//engine.New(createLogger(parseArgs())).AwaitShutdown()
+	args := parseArgs()
+	logger := util.CreateLogger(args.PrettyLogging, args.Debug)
+	logger.Info().Msg("Starting prj001...")
+	engine.New(logger, chronos.New()).AwaitShutdown()
 }
 
 func parseArgs() Args {
@@ -30,16 +31,4 @@ func parseArgs() Args {
 		PrettyLogging: *prettyLogging,
 		Debug:         *debug,
 	}
-}
-
-func createLogger(args Args) *zerolog.Logger {
-	logger := zerolog.New(os.Stdout).With().Timestamp().Logger()
-	if args.PrettyLogging {
-		logger = logger.Output(zerolog.ConsoleWriter{Out: os.Stderr})
-	}
-	zerolog.SetGlobalLevel(zerolog.InfoLevel)
-	if args.Debug {
-		zerolog.SetGlobalLevel(zerolog.DebugLevel)
-	}
-	return &logger
 }

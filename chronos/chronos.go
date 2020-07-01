@@ -46,10 +46,16 @@ func (m *MockChronos) NowNano() time.Duration {
 }
 
 func (m *MockChronos) Sleep(duration time.Duration) {
-	ch := make(chan int64)
-	m.nanoToCh.Put(m.nowNano+duration.Nanoseconds(), ch)
+	var ch chan int64
+	if duration > 0 {
+		ch = make(chan int64)
+		m.nanoToCh.Put(m.nowNano+duration.Nanoseconds(), ch)
+	}
 	m.waitForSleepCh <- true
-	<-ch
+	if duration > 0 {
+		//noinspection GoNilness
+		<-ch
+	}
 }
 
 func (m *MockChronos) Forward() bool {
@@ -66,4 +72,10 @@ func (m *MockChronos) Forward() bool {
 
 func (m *MockChronos) WaitForSleep() {
 	<-m.waitForSleepCh
+}
+
+func (m *MockChronos) WaitForSleeps(count int) {
+	for i := 0; i < count; i++ {
+		m.WaitForSleep()
+	}
 }

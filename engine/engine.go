@@ -42,11 +42,12 @@ func (e *Engine) run() {
 }
 
 type World struct {
-	Engine Engine
+	Engine *Engine
 	//CreatedNano uint64
 	//Parent           *World
 	//ParentTick       int64
-	StateUpdateC chan *Item
+	StateUpdateCh chan *Item
+	PoisonCh      chan int8
 	//IntentionChannel chan
 	//Cells []Cell
 }
@@ -56,33 +57,20 @@ type Cell struct {
 	Items         map[uint16]*Item
 }
 
-func (w *World) run() {
-	for {
+func (w *World) Run() {
+	run := true
+	for run {
 		select {
-		case item := <-w.StateUpdateC:
-			processItem(item)
+		case item := <-w.StateUpdateCh:
+			item.Type.UpdateState(item, w.Engine.Chronos.NowNano())
+		case <-w.PoisonCh:
+			run = false
 		}
 	}
 }
 
-func processItem(item *Item) {
-	world := item.World
-	engine := world.Engine
-	for _, subsequentRequest := range item.Type.UpdateState(item, engine.Chronos.NowNano()) {
-		go func(r StateUpdateRequest) {
-			engine.Chronos.Sleep(r.ScheduleIn)
-			world.StateUpdateC <- r.Item
-		}(subsequentRequest)
-	}
-}
-
-type StateUpdateRequest struct {
-	ScheduleIn time.Duration
-	Item       *Item
-}
-
 type ItemType struct {
-	UpdateState func(item *Item, nowNano int64) []StateUpdateRequest
+	UpdateState func(item *Item, nowNano time.Duration)
 
 	//Obstacle bool
 	//Sprite   string
@@ -91,4 +79,12 @@ type ItemType struct {
 type Item struct {
 	World *World
 	Type  *ItemType
+	State interface{}
+}
+
+func (i *Item) ScheduleStateUpdate(interval time.Duration) {
+	go func() {
+		i.World.Engine.Chronos.Sleep(interval)
+		i.World.StateUpdateCh <- i
+	}()
 }

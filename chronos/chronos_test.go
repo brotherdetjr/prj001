@@ -31,14 +31,12 @@ func TestMock(t *testing.T) {
 		ch <- true
 	}()
 
-	chronos.WaitForSleep()
-
 	go func() {
 		chronos.Sleep(2 * time.Second)
 		ch <- true
 	}()
 
-	chronos.WaitForSleep()
+	chronos.WaitForSleeps(2)
 
 	assert.True(t, chronos.Forward())
 
