@@ -50,4 +50,13 @@ func TestMock(t *testing.T) {
 
 	assert.False(t, chronos.Forward())
 
+	go func() {
+		chronos.Sleep(0)
+		ch <- true
+	}()
+
+	chronos.WaitForSleep()
+
+	assert.True(t, <-ch)
+
 }

@@ -49,7 +49,6 @@ func TestProcessItem(t *testing.T) {
 	assert.Equal(t, 2, item.State)
 
 	// when
-	//time.Sleep(1 * time.Second)
 	chronos.WaitForSleeps(2)
 	chronos.Forward()
 	<-ch
@@ -58,7 +57,6 @@ func TestProcessItem(t *testing.T) {
 	assert.Equal(t, 3, item.State)
 
 	// when
-	//time.Sleep(1 * time.Second)
 	chronos.Forward()
 	<-ch
 
