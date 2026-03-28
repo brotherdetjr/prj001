@@ -15,7 +15,7 @@ class DepartureBoardRenderer:
         self.scale = scale
 
         # Create image canvas
-        self.image = Image.new('RGB', (self.width, self.height), display_config.BLACK)
+        self.image = Image.new('RGB', (self.width, self.height), display_config.WHITE)
         self.draw = ImageDraw.Draw(self.image)
 
         # Load fonts - try to use a monospace font for authentic LED look
@@ -38,12 +38,16 @@ class DepartureBoardRenderer:
 
     def clear(self):
         """Clear the canvas."""
-        self.image = Image.new('RGB', (self.width, self.height), display_config.BLACK)
+        self.image = Image.new('RGB', (self.width, self.height), display_config.WHITE)
         self.draw = ImageDraw.Draw(self.image)
 
     def draw_header(self):
         """Draw the header with station name and current time."""
         current_time = datetime.now().strftime("%H:%M:%S")
+
+        # Yellow background for the header row
+        header_bottom = round(display_config.HEADER_HEIGHT * self.scale)
+        self.draw.rectangle([(0, 0), (self.width, header_bottom)], fill=display_config.YELLOW)
 
         # Draw station name on the left
         if self.station_name:
@@ -51,7 +55,7 @@ class DepartureBoardRenderer:
                 (10, 10),
                 self.station_name,
                 font=self.header_font,
-                fill=display_config.WHITE
+                fill=display_config.BLACK
             )
 
         # Draw current time on the right
@@ -61,12 +65,11 @@ class DepartureBoardRenderer:
             (self.width - time_width - 10, 10),
             current_time,
             font=self.header_font,
-            fill=display_config.YELLOW
+            fill=display_config.BLACK
         )
 
         # Draw a horizontal line below the header
-        y_pos = round(display_config.HEADER_HEIGHT * self.scale)
-        self.draw.line([(0, y_pos), (self.width, y_pos)], fill=display_config.YELLOW, width=1)
+        self.draw.line([(0, header_bottom), (self.width, header_bottom)], fill=display_config.BLACK, width=1)
 
     def draw_table_headers(self):
         """Draw column headers for the departure table."""
@@ -79,14 +82,14 @@ class DepartureBoardRenderer:
         status_x = 650
 
         # Draw headers
-        self.draw.text((time_x, y_pos), "TIME", font=self.table_font, fill=display_config.YELLOW)
-        self.draw.text((dest_x, y_pos), "DESTINATION", font=self.table_font, fill=display_config.YELLOW)
-        self.draw.text((plat_x, y_pos), "PLAT", font=self.table_font, fill=display_config.YELLOW)
-        self.draw.text((status_x, y_pos), "STATUS", font=self.table_font, fill=display_config.YELLOW)
+        self.draw.text((time_x, y_pos), "TIME", font=self.table_font, fill=display_config.BLACK)
+        self.draw.text((dest_x, y_pos), "DESTINATION", font=self.table_font, fill=display_config.BLACK)
+        self.draw.text((plat_x, y_pos), "PLAT", font=self.table_font, fill=display_config.BLACK)
+        self.draw.text((status_x, y_pos), "STATUS", font=self.table_font, fill=display_config.BLACK)
 
         # Draw a horizontal line below the table headers
         y_pos = round((display_config.HEADER_HEIGHT + display_config.TABLE_HEADER_HEIGHT) * self.scale)
-        self.draw.line([(0, y_pos), (self.width, y_pos)], fill=display_config.YELLOW, width=1)
+        self.draw.line([(0, y_pos), (self.width, y_pos)], fill=display_config.BLACK, width=1)
 
     def draw_service(self, service: TrainService, row_index: int):
         """Draw a single service row."""
@@ -99,12 +102,7 @@ class DepartureBoardRenderer:
         status_x = 650
 
         # Determine text color based on status
-        if service.is_cancelled:
-            text_color = display_config.RED
-        elif service.is_delayed:
-            text_color = display_config.YELLOW
-        else:
-            text_color = display_config.YELLOW
+        text_color = display_config.RED if (service.is_cancelled or service.is_delayed) else display_config.BLACK
 
         # Draw scheduled time
         self.draw.text((time_x, y_pos), service.scheduled_time, font=self.row_font, fill=text_color)
@@ -120,8 +118,8 @@ class DepartureBoardRenderer:
         platform = service.platform if service.platform else "-"
         self.draw.text((plat_x, y_pos), platform, font=self.row_font, fill=text_color)
 
-        # Draw status (use red for cancelled/delayed)
-        status_color = display_config.RED if (service.is_cancelled or service.is_delayed) else display_config.YELLOW
+        # Draw status
+        status_color = display_config.RED if (service.is_cancelled or service.is_delayed) else display_config.BLACK
         status_text = service.status
         if len(status_text) > 15:
             status_text = status_text[:12] + "..."
