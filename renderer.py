@@ -8,11 +8,12 @@ from config import display_config
 class DepartureBoardRenderer:
     """Renders departure board in LED matrix style."""
 
-    def __init__(self, station_name: str = "", scale: float = 1.0):
+    def __init__(self, station_name: str = "", scale: float = 1.0, show_seconds: bool = True):
         self.width = display_config.WIDTH
         self.height = display_config.HEIGHT
         self.station_name = station_name
         self.scale = scale
+        self.show_seconds = show_seconds
 
         # Create image canvas
         self.image = Image.new('RGB', (self.width, self.height), display_config.WHITE)
@@ -43,7 +44,7 @@ class DepartureBoardRenderer:
 
     def draw_header(self):
         """Draw the header with station name and current time."""
-        current_time = datetime.now().strftime("%H:%M:%S")
+        current_time = datetime.now().strftime("%H:%M:%S" if self.show_seconds else "%H:%M")
 
         # Yellow background for the header row
         header_bottom = round(display_config.HEADER_HEIGHT * self.scale)
