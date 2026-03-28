@@ -15,7 +15,7 @@ class DisplayConfig:
     # Color palette
     BLACK: tuple = (0, 0, 0)
     WHITE: tuple = (255, 255, 255)
-    YELLOW: tuple = (255, 215, 0)  # #FFD700
+    YELLOW: tuple = (255, 255, 0)  # #FFD700
     RED: tuple = (255, 0, 0)  # #FF0000
 
     # Layout dimensions
