@@ -35,9 +35,9 @@ def get_station_name(station_code: str) -> str:
     return STATION_NAMES.get(station_code.upper(), station_code.upper())
 
 
-def run_loop(display, station_code: str, station_name: str):
+def run_loop(display, station_code: str, station_name: str, scale: float = 1.0):
     """Fetch departures, render to PIL Image, and push to display — indefinitely."""
-    renderer = DepartureBoardRenderer(station_name=station_name)
+    renderer = DepartureBoardRenderer(station_name=station_name, scale=scale)
     print(f"Starting departure board for {station_name} ({station_code})")
     print(f"Refresh interval: {api_config.REFRESH_INTERVAL} seconds")
     while True:
@@ -63,7 +63,7 @@ def main():
         display = EPD5in79gDisplay()
         display.init()
         try:
-            run_loop(display, station_code, station_name)
+            run_loop(display, station_code, station_name, scale=1.2)
         except KeyboardInterrupt:
             print("\nShutting down...")
         finally:
